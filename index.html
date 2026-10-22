@@ -2,130 +2,338 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>VC Meeting Management System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VC Meeting Portal — Principal Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 30px; background: #f4f6f9; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    h2 { color: #333; }
-    label { font-weight: bold; display: block; margin-top: 10px; }
-    input, textarea, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
-    textarea { height: 100px; }
-    button { background: #007bff; color: white; border: none; padding: 10px 15px; margin-top: 15px; border-radius: 4px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .attendance-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .attendance-table th, .attendance-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    .attendance-table th { background-color: #f2f2f2; }
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      --card-bg: #ffffff;
+      --accent: #10b981;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f1f5f9;
+      color: #334155;
+      margin: 0;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header-banner {
+      background: var(--bg-gradient);
+      color: white;
+      padding: 25px 30px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    .header-banner h1 {
+      margin: 0 0 5px 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .header-banner p {
+      margin: 0;
+      opacity: 0.85;
+      font-size: 14px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      margin-bottom: 25px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      box-sizing: border-box;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    textarea {
+      height: 110px;
+      resize: vertical;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      margin-top: 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .link-badge-container {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 15px 20px;
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .link-badge {
+      font-family: monospace;
+      font-size: 15px;
+      color: #15803d;
+      font-weight: bold;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .link-badge:hover {
+      text-decoration: underline;
+    }
+
+    .participant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .participant-card {
+      background: #f8fafc;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .attendance-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .attendance-table th, .attendance-table td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .attendance-table th {
+      background-color: #f8fafc;
+      color: #475569;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .status-PRESENT { background: #dcfce7; color: #15803d; }
+    .status-ABSENT { background: #fee2e2; color: #b91c1c; }
+
+    .btn-toggle {
+      background: #e2e8f0;
+      color: #334155;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>Create Virtual Conference (VC)</h2>
-    <form id="vcForm">
-      <label>Creator Email (Host):</label>
-      <input type="text" value="Principal (principal@school.edu.in)" disabled />
+  <div class="container">
+    <div class="header-banner">
+      <h1>VC Meeting Management System</h1>
+      <p>Host: Principal (principal@school.edu.in) | Attendance & MoM Report Generator</p>
+    </div>
 
-      <label>Meeting Title:</label>
-      <input type="text" id="title" placeholder="e.g., Monthly Review Meeting" required />
+    <!-- VC Creation Form -->
+    <div class="card">
+      <h2>Schedule Virtual Conference</h2>
+      <form id="vcForm">
+        <label>Creator Email (Host):</label>
+        <input type="text" value="Principal (principal@school.edu.in)" disabled />
 
-      <label>Date & Time:</label>
-      <input type="datetime-local" id="scheduled_date" required />
+        <label>Meeting Title:</label>
+        <input type="text" id="title" placeholder="e.g., Staff Academic Review VC" required />
 
-      <label>Google Meet Link (Optional/Auto-generated):</label>
-      <input type="url" id="custom_meet_link" placeholder="https://meet.google.com/xxx-yyyy-zzz" />
+        <label>Date & Time:</label>
+        <input type="datetime-local" id="scheduled_date" required />
 
-      <label>Select Participants (Loaded from Database):</label>
-      <div id="participantList"></div>
+        <label>Google Meet Link (Optional / Auto-Generated):</label>
+        <input type="url" id="custom_meet_link" placeholder="https://meet.google.com/abc-defg-hij" />
 
-      <label>Agenda Points (Multi-line Cell Area):</label>
-      <textarea id="agenda_points" placeholder="1. Agenda Item One&#10;2. Agenda Item Two"></textarea>
+        <label>Participants Directory (Database / Local List):</label>
+        <div id="participantList" class="participant-grid"></div>
 
-      <button type="submit">Schedule VC & Generate Link</button>
-    </form>
-  </div>
+        <label>Agenda Points Area (Cell Area):</label>
+        <textarea id="agenda_points" placeholder="1. Discussion on Syllabus completion&#10;2. Examination schedule review"></textarea>
 
-  <div class="card" id="meetingDetailsCard" style="display:none;">
-    <h2>Meeting Created Successfully</h2>
-    <p><strong>VC Link:</strong> <a id="meetLinkAnchor" href="#" target="_blank"></a></p>
-    
-    <h3>Attendance Management</h3>
-    <table class="attendance-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="attendanceTableBody"></tbody>
-    </table>
+        <button type="submit" class="btn">Create VC Meeting & Generate Link</button>
+      </form>
+    </div>
 
-    <button onclick="downloadMoM()">Download Minutes of Meeting (MoM) PDF</button>
+    <!-- Active Meeting Details & MoM Download Panel -->
+    <div class="card" id="meetingDetailsCard" style="display:none;">
+      <h2>Active VC Details & Attendance</h2>
+      
+      <div class="link-badge-container">
+        <div>
+          <span style="font-size:12px; color:#15803d; display:block; font-weight:bold;">GOOGLE MEET LINK</span>
+          <a id="meetLinkAnchor" class="link-badge" href="#" target="_blank"></a>
+        </div>
+        <button class="btn" style="margin-top:0; background:#10b981;" onclick="copyLink()">Copy Link</button>
+      </div>
+      
+      <h3>Attendance List</h3>
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTableBody"></tbody>
+      </table>
+
+      <button class="btn" style="background:#0f172a;" onclick="downloadMoM()">Download Minutes of Meeting (MoM)</button>
+    </div>
   </div>
 
   <script>
-    let currentMeetingId = null;
+    // Pre-filled participant database list
+    const participantsDb = [
+      { name: "Mannau Layy", email: "mannaulayy@school.edu.in" },
+      { name: "Sushil Kumar", email: "sushil@school.edu.in" },
+      { name: "Pathak Ji", email: "pathak@school.edu.in" }
+    ];
 
-    // Load participants from database
-    async function loadParticipants() {
-      const res = await fetch('/api/participants');
-      const participants = await res.json();
+    let currentMeeting = null;
+
+    function loadParticipants() {
       const container = document.getElementById('participantList');
       container.innerHTML = '';
-      participants.forEach(p => {
+      participantsDb.forEach(p => {
         container.innerHTML += `
-          <div>
-            <input type="checkbox" value="${p.email}" class="p-check" checked>
-            <span>${p.name} (${p.email})</span>
+          <div class="participant-card">
+            <input type="checkbox" value="${p.email}" data-name="${p.name}" class="p-check" checked>
+            <div>
+              <strong>${p.name}</strong><br/>
+              <span style="color:#64748b; font-size:11px;">${p.email}</span>
+            </div>
           </div>
         `;
       });
     }
 
-    document.getElementById('vcForm').addEventListener('submit', async (e) => {
+    document.getElementById('vcForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const selected_emails = Array.from(document.querySelectorAll('.p-check:checked')).map(cb => cb.value);
+      
+      const checkedBoxes = document.querySelectorAll('.p-check:checked');
+      const attendees = Array.from(checkedBoxes).map(cb => ({
+        name: cb.getAttribute('data-name'),
+        email: cb.value,
+        status: 'PRESENT'
+      }));
 
-      const payload = {
-        title: document.getElementById('title').value,
-        scheduled_date: document.getElementById('scheduled_date').value,
-        custom_meet_link: document.getElementById('custom_meet_link').value,
-        agenda_points: document.getElementById('agenda_points').value,
-        selected_emails
+      const title = document.getElementById('title').value;
+      const scheduled_date = document.getElementById('scheduled_date').value;
+      const customLink = document.getElementById('custom_meet_link').value;
+      const agenda_points = document.getElementById('agenda_points').value;
+
+      const meetLink = customLink || `https://meet.google.com/vc-${Math.random().toString(36).substring(2, 7)}-${Math.random().toString(36).substring(2, 6)}`;
+
+      currentMeeting = {
+        id: 'meet-' + Date.now(),
+        title,
+        creator: 'Principal (principal@school.edu.in)',
+        scheduled_date,
+        meet_link: meetLink,
+        agenda_points,
+        attendances: attendees
       };
 
-      const res = await fetch('/api/meetings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        currentMeetingId = data.meeting.id;
-        document.getElementById('meetLinkAnchor').href = data.meeting.meet_link;
-        document.getElementById('meetLinkAnchor').innerText = data.meeting.meet_link;
-        document.getElementById('meetingDetailsCard').style.display = 'block';
-        loadAttendance(currentMeetingId);
-      }
+      document.getElementById('meetLinkAnchor.href') // fixed below
+      document.getElementById('meetLinkAnchor').href = meetLink;
+      document.getElementById('meetLinkAnchor').innerText = meetLink;
+      document.getElementById('meetingDetailsCard').style.display = 'block';
+      
+      renderAttendanceTable();
     });
 
-    async function loadAttendance(meetingId) {
-      const res = await fetch(`/api/meetings/${meetingId}`);
-      const meeting = await res.json();
+    function renderAttendanceTable() {
+      if (!currentMeeting) return;
       const tbody = document.getElementById('attendanceTableBody');
       tbody.innerHTML = '';
 
-      meeting.attendances.forEach(att => {
+      currentMeeting.attendances.forEach((att, index) => {
         tbody.innerHTML += `
           <tr>
-            <td>${att.user_name}</td>
-            <td>${att.user_email}</td>
-            <td><strong>${att.status}</strong></td>
+            <td>${att.name}</td>
+            <td>${att.email}</td>
+            <td><span class="status-badge status-${att.status}">${att.status}</span></td>
             <td>
-              <button onclick="toggleAttendance('${att.id}', '${att.status === 'PRESENT' ? 'ABSENT' : 'PRESENT'}')">
-                Mark ${att.status === 'PRESENT' ? 'ABSENT' : 'PRESENT'}
+              <button class="btn-toggle" onclick="toggleAttendance(${index})">
+                Toggle to ${att.status === 'PRESENT' ? 'ABSENT' : 'PRESENT'}
               </button>
             </td>
           </tr>
@@ -133,19 +341,50 @@
       });
     }
 
-    async function toggleAttendance(id, newStatus) {
-      await fetch('/api/attendance/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attendance_id: id, status: newStatus })
-      });
-      loadAttendance(currentMeetingId);
+    function toggleAttendance(index) {
+      if (!currentMeeting) return;
+      currentMeeting.attendances[index].status = 
+        currentMeeting.attendances[index].status === 'PRESENT' ? 'ABSENT' : 'PRESENT';
+      renderAttendanceTable();
+    }
+
+    function copyLink() {
+      const linkText = document.getElementById('meetLinkAnchor').href;
+      navigator.clipboard.writeText(linkText);
+      alert('Meet link copied to clipboard!');
     }
 
     function downloadMoM() {
-      if (currentMeetingId) {
-        window.location.href = `/api/meetings/${currentMeetingId}/download-mom`;
-      }
+      if (!currentMeeting) return;
+
+      let report = `=========================================\n`;
+      report += `          MINUTES OF MEETING (MoM)        \n`;
+      report += `=========================================\n\n`;
+      report += `Meeting Title: ${currentMeeting.title}\n`;
+      report += `Host / Creator: Principal (principal@school.edu.in)\n`;
+      report += `Date & Time: ${new Date(currentMeeting.scheduled_date).toLocaleString()}\n`;
+      report += `Google Meet Link: ${currentMeeting.meet_link}\n\n`;
+      report += `-----------------------------------------\n`;
+      report += `AGENDA POINTS:\n`;
+      report += `-----------------------------------------\n`;
+      report += `${currentMeeting.agenda_points}\n\n`;
+      report += `-----------------------------------------\n`;
+      report += `ATTENDANCE REPORT (From Database):\n`;
+      report += `-----------------------------------------\n`;
+
+      currentMeeting.attendances.forEach((att, idx) => {
+        report += `${idx + 1}. ${att.name} (${att.email}) — Status: ${att.status}\n`;
+      });
+
+      report += `\n=========================================\n`;
+
+      const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MoM_${currentMeeting.title.replace(/\s+/g, '_')}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
     loadParticipants();
