@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VC Meeting Management System</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f4f6f9; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    h2 { color: #333; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    input, textarea, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+    textarea { height: 100px; }
+    button { background: #007bff; color: white; border: none; padding: 10px 15px; margin-top: 15px; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .attendance-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .attendance-table th, .attendance-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .attendance-table th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Create Virtual Conference (VC)</h2>
+    <form id="vcForm">
+      <label>Creator Email (Host):</label>
+      <input type="text" value="Principal (principal@school.edu.in)" disabled />
+
+      <label>Meeting Title:</label>
+      <input type="text" id="title" placeholder="e.g., Monthly Review Meeting" required />
+
+      <label>Date & Time:</label>
+      <input type="datetime-local" id="scheduled_date" required />
+
+      <label>Google Meet Link (Optional/Auto-generated):</label>
+      <input type="url" id="custom_meet_link" placeholder="https://meet.google.com/xxx-yyyy-zzz" />
+
+      <label>Select Participants (Loaded from Database):</label>
+      <div id="participantList"></div>
+
+      <label>Agenda Points (Multi-line Cell Area):</label>
+      <textarea id="agenda_points" placeholder="1. Agenda Item One&#10;2. Agenda Item Two"></textarea>
+
+      <button type="submit">Schedule VC & Generate Link</button>
+    </form>
+  </div>
+
+  <div class="card" id="meetingDetailsCard" style="display:none;">
+    <h2>Meeting Created Successfully</h2>
+    <p><strong>VC Link:</strong> <a id="meetLinkAnchor" href="#" target="_blank"></a></p>
+    
+    <h3>Attendance Management</h3>
+    <table class="attendance-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceTableBody"></tbody>
+    </table>
+
+    <button onclick="downloadMoM()">Download Minutes of Meeting (MoM) PDF</button>
+  </div>
+
+  <script>
+    let currentMeetingId = null;
+
+    // Load participants from database
+    async function loadParticipants() {
+      const res = await fetch('/api/participants');
+      const participants = await res.json();
+      const container = document.getElementById('participantList');
+      container.innerHTML = '';
+      participants.forEach(p => {
+        container.innerHTML += `
+          <div>
+            <input type="checkbox" value="${p.email}" class="p-check" checked>
+            <span>${p.name} (${p.email})</span>
+          </div>
+        `;
+      });
+    }
+
+    document.getElementById('vcForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const selected_emails = Array.from(document.querySelectorAll('.p-check:checked')).map(cb => cb.value);
+
+      const payload = {
+        title: document.getElementById('title').value,
+        scheduled_date: document.getElementById('scheduled_date').value,
+        custom_meet_link: document.getElementById('custom_meet_link').value,
+        agenda_points: document.getElementById('agenda_points').value,
+        selected_emails
+      };
+
+      const res = await fetch('/api/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        currentMeetingId = data.meeting.id;
+        document.getElementById('meetLinkAnchor').href = data.meeting.meet_link;
+        document.getElementById('meetLinkAnchor').innerText = data.meeting.meet_link;
+        document.getElementById('meetingDetailsCard').style.display = 'block';
+        loadAttendance(currentMeetingId);
+      }
+    });
+
+    async function loadAttendance(meetingId) {
+      const res = await fetch(`/api/meetings/${meetingId}`);
+      const meeting = await res.json();
+      const tbody = document.getElementById('attendanceTableBody');
+      tbody.innerHTML = '';
+
+      meeting.attendances.forEach(att => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${att.user_name}</td>
+            <td>${att.user_email}</td>
+            <td><strong>${att.status}</strong></td>
+            <td>
+              <button onclick="toggleAttendance('${att.id}', '${att.status === 'PRESENT' ? 'ABSENT' : 'PRESENT'}')">
+                Mark ${att.status === 'PRESENT' ? 'ABSENT' : 'PRESENT'}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function toggleAttendance(id, newStatus) {
+      await fetch('/api/attendance/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attendance_id: id, status: newStatus })
+      });
+      loadAttendance(currentMeetingId);
+    }
+
+    function downloadMoM() {
+      if (currentMeetingId) {
+        window.location.href = `/api/meetings/${currentMeetingId}/download-mom`;
+      }
+    }
+
+    loadParticipants();
+  </script>
+</body>
+</html>
